@@ -164,7 +164,6 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Fresh Fruits Available</h2>
         <div class="row" id="fruit-list">
-            <!-- Fruit Cards -->
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="fruit-card">
                     <img src="https://static.wikia.nocookie.net/fruits-information/images/2/2b/Apple.jpg" alt="Apple">
@@ -205,7 +204,6 @@
                 </div>
             </div>
 
-            <!-- New Fruits -->
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="fruit-card">
                     <img src="https://5.imimg.com/data5/TU/TO/MY-14521890/fresh-mango-250x250.jpg" alt="Mango">
@@ -292,7 +290,6 @@
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-        // Display user avatar and name
         function displayUserAvatar() {
             const avatarElement = document.getElementById('user-avatar');
             const profileName = document.getElementById('profile-name');
@@ -310,7 +307,6 @@
             }
         }
 
-        // Add item to cart
         function addToCart(name, price, unit, img) {
             const existingItem = cart.find(item => item.name === name);
 
@@ -328,10 +324,9 @@
             alert(`${name} added to cart!`);
         }
 
-        // Fetch fruit data from external JSON or API (for demo, we use a JSON file)
         async function fetchFruits() {
             try {
-                const response = await fetch('fruits.json'); // Link to external file or API
+                const response = await fetch('fruits.json'); 
                 const fruits = await response.json();
 
                 displayFruits(fruits);
@@ -341,10 +336,9 @@
             }
         }
 
-        // Display fruits dynamically
         function displayFruits(fruits) {
             const fruitList = document.getElementById('fruit-list');
-            fruitList.innerHTML = ''; // Clear any existing content
+            fruitList.innerHTML = ''; 
 
             fruits.forEach(fruit => {
                 fruitList.innerHTML += `
@@ -361,10 +355,9 @@
             });
         }
 
-        // Initialize page content
         document.addEventListener('DOMContentLoaded', () => {
             displayUserAvatar();
-            fetchFruits(); // Fetch and display fruits dynamically
+            fetchFruits(); 
         });
     </script>
     
