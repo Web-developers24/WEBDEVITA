@@ -1,44 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h> 
+#include <conio.h>
 
-#define MAX_USERS 100
-#define USERNAME_LEN 50
-#define PASSWORD_LEN 50
 #define FILENAME "users.txt"
-#define KEY 5 
+#define KEY 5
 #define MAX_ATTEMPTS 3
 
-typedef struct {
-    char username[USERNAME_LEN];
-    char password[PASSWORD_LEN];
+typedef struct User 
+{
+    char username[50];
+    char password[50];
+    struct User* next; 
 } User;
 
-void registerUser();
-int loginUser();
-void saveUser(User user);
-int checkCredentials(char *username, char *password);
-void encryptPassword(char *password);
-void decryptPassword(char *password);
-void adminPanel();
-void viewUsers();
-void deleteUser(char *username);
-void getMaskedPassword(char *password);
-
+User* userList = NULL; 
 int loginAttempts = 0;
 
+void loadUsers();
+void saveUsers();
+void registerUser();
+int loginUser();
+void encryptPassword(char* password);
+void decryptPassword(char* password);
+void adminPanel();
+void viewUsers();
+void deleteUser(char* username);
+void getMaskedPassword(char* password);
+
 int main() {
+    loadUsers(); 
+
     int choice;
     while (1) {
-        printf("\n====================================================\n");
+        printf("\n__________________________________________________\n");
         printf(" Welcome to Suyambu Lingam Pazhamudhir Cholai \n");
-        printf("====================================================\n");
+        printf("____________________________________________________\n");
         printf("1 Register\n");
         printf("2 Login\n");
         printf("3 Admin Panel\n");
         printf("4 Exit\n");
-        printf("====================================================\n");
+        printf("____________________________________________________\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -51,7 +53,7 @@ int main() {
                     printf("\n Too many failed attempts! Please try again later.\n");
                 } else if (loginUser()) {
                     printf("\n Login successful! \nRedirecting to your cart...\n");
-                    loginAttempts = 0; 
+                    loginAttempts = 0;
                 } else {
                     loginAttempts++;
                     printf("\n Invalid username or password. Attempts left: %d\n", MAX_ATTEMPTS - loginAttempts);
@@ -61,6 +63,7 @@ int main() {
                 adminPanel();
                 break;
             case 4:
+                saveUsers(); 
                 printf("\n Exiting... Thank you for visiting!\n");
                 exit(0);
             default:
@@ -70,92 +73,106 @@ int main() {
     return 0;
 }
 
+void loadUsers() {
+    FILE* file = fopen(FILENAME, "r");
+    if (!file) return;
+
+    char username[50], password[50];
+    while (fscanf(file, "%s %s", username, password) != EOF) {
+        User* newUser = (User*)malloc(sizeof(User));
+        strcpy(newUser->username, username);
+        strcpy(newUser->password, password);
+        decryptPassword(newUser->password);
+        newUser->next = userList;
+        userList = newUser;
+    }
+    fclose(file);
+}
+
+void saveUsers() {
+    FILE* file = fopen(FILENAME, "w");
+    if (!file) return;
+
+    User* current = userList;
+    while (current) {
+        encryptPassword(current->password);
+        fprintf(file, "%s %s\n", current->username, current->password);
+        decryptPassword(current->password); 
+        current = current->next;
+    }
+    fclose(file);
+}
+
 void registerUser() {
-    User user;
+    char username[50], password[50];
     printf("\n--- Register New User ---\n");
     printf("Enter username: ");
-    scanf("%s", user.username);
-    
-    printf(" Enter password: ");
-    getMaskedPassword(user.password);
+    scanf("%s", username);
 
-    if (checkCredentials(user.username, user.password)) {
-        printf("\n Username already exists! Try a different one.\n");
-        return;
+    printf("Enter password: ");
+    getMaskedPassword(password);
+
+    User* current = userList;
+    while (current) {
+        if (strcmp(current->username, username) == 0) {
+            printf("\n Username already exists! Try a different one.\n");
+            return;
+        }
+        current = current->next;
     }
 
-    encryptPassword(user.password);
-    saveUser(user);
+    User* newUser = (User*)malloc(sizeof(User));
+    strcpy(newUser->username, username);
+    strcpy(newUser->password, password);
+    encryptPassword(newUser->password);
+    newUser->next = userList;
+    userList = newUser;
+
     printf("\n Registration successful! You can now log in. \n");
 }
 
 int loginUser() {
-    char username[USERNAME_LEN], password[PASSWORD_LEN];
-    printf("\n---  User Login ---\n");
-    printf(" Enter username: ");
+    char username[50], password[50];
+    printf("\n--- User Login ---\n");
+    printf("Enter username: ");
     scanf("%s", username);
 
-    printf(" Enter password: ");
+    printf("Enter password: ");
     getMaskedPassword(password);
 
     encryptPassword(password);
 
-    if (checkCredentials(username, password)) {
-        return 1; 
+    User* current = userList;
+    while (current) {
+        if (strcmp(current->username, username) == 0 && strcmp(current->password, password) == 0) {
+            return 1; 
+        }
+        current = current->next;
     }
     return 0; 
 }
 
-void saveUser(User user) {
-    FILE *file = fopen(FILENAME, "a");
-    if (file == NULL) {
-        printf("\n Error opening file!\n");
-        return;
-    }
-    fprintf(file, "%s %s\n", user.username, user.password);
-    fclose(file);
-}
-
-int checkCredentials(char *username, char *password) {
-    FILE *file = fopen(FILENAME, "r");
-    if (file == NULL) {
-        return 0;
-    }
-
-    User user;
-    while (fscanf(file, "%s %s", user.username, user.password) != EOF) {
-        if (strcmp(user.username, username) == 0) {
-            if (strcmp(user.password, password) == 0) {
-                fclose(file);
-                return 1; 
-            }
-        }
-    }
-    fclose(file);
-    return 0;
-}
-
-void encryptPassword(char *password) {
+void encryptPassword(char* password) {
     for (int i = 0; password[i] != '\0'; i++) {
-        password[i] ^= KEY; 
+        password[i] ^= KEY;
     }
 }
 
-void decryptPassword(char *password) {
+void decryptPassword(char* password) {
     for (int i = 0; password[i] != '\0'; i++) {
         password[i] ^= KEY;
     }
 }
 
 void adminPanel() {
-    char adminUser[USERNAME_LEN] = "admin";
-    char adminPass[PASSWORD_LEN] = "admin123";
-    char username[USERNAME_LEN], password[PASSWORD_LEN];
+    char adminUser[50] = "admin";
+    char adminPass[50] = "admin123";
+    char username[50], password[50];
 
     printf("\n--- Admin Login ---\n");
     printf("Enter admin username: ");
     scanf("%s", username);
-    
+
     printf("Enter admin password: ");
     getMaskedPassword(password);
 
@@ -167,7 +184,7 @@ void adminPanel() {
             printf("1 View Users\n");
             printf("2 Delete User\n");
             printf("3 Logout\n");
-            printf(" Enter your choice: ");
+            printf("Enter your choice: ");
             scanf("%d", &choice);
 
             switch (choice) {
@@ -175,7 +192,7 @@ void adminPanel() {
                     viewUsers();
                     break;
                 case 2:
-                    printf(" Enter username to delete: ");
+                    printf("Enter username to delete: ");
                     scanf("%s", username);
                     deleteUser(username);
                     break;
@@ -192,55 +209,40 @@ void adminPanel() {
 }
 
 void viewUsers() {
-    FILE *file = fopen(FILENAME, "r");
-    if (file == NULL) {
+    if (!userList) {
         printf("\n No registered users found!\n");
         return;
     }
 
-    User user;
     printf("\n--- Registered Users ---\n");
-    while (fscanf(file, "%s %s", user.username, user.password) != EOF) {
-        decryptPassword(user.password);
-        printf("Username: %s | Password: %s\n", user.username, user.password);
+    User* current = userList;
+    while (current) {
+        printf("Username: %s | Password: %s\n", current->username, current->password);
+        current = current->next;
     }
-    fclose(file);
 }
 
-void deleteUser(char *username) {
-    FILE *file = fopen(FILENAME, "r");
-    if (file == NULL) {
-        printf("\n No registered users found!\n");
-        return;
-    }
+void deleteUser(char* username) {
+    User *current = userList, *prev = NULL;
 
-    User users[MAX_USERS];
-    int count = 0, found = 0;
-
-    // Read all users into memory
-    while (fscanf(file, "%s %s", users[count].username, users[count].password) != EOF) {
-        if (strcmp(users[count].username, username) != 0) {
-            count++;
-        } else {
-            found = 1;
+    while (current) {
+        if (strcmp(current->username, username) == 0) {
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                userList = current->next;
+            }
+            free(current);
+            printf("\n User '%s' deleted successfully.\n", username);
+            return;
         }
+        prev = current;
+        current = current->next;
     }
-    fclose(file);
-
-    if (!found) {
-        printf("\n User not found!\n");
-        return;
-    }
-
-    file = fopen(FILENAME, "w");
-    for (int i = 0; i < count; i++) {
-        fprintf(file, "%s %s\n", users[i].username, users[i].password);
-    }
-    fclose(file);
-    printf("\n User '%s' deleted successfully.\n", username);
+    printf("\n User not found!\n");
 }
 
-void getMaskedPassword(char *password) {
+void getMaskedPassword(char* password) {
     char ch;
     int i = 0;
     while ((ch = getch()) != 13) { 
