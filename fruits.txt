@@ -1,13 +1,15 @@
-Mango 220.00 kg
-Apple 35.00 kg
-Banana 50.00 dozen
-Orange 120.00 kg
-Grapes 100.00 kg
-Pineapple 90.00 kg
-Strawberry 300.00 kg
-Papaya 50.00 kg
-Watermelon 40.00 kg
-Dragonfruit 60.00 piece
-Pomegranate 150.00 kg
-Jackfruit 80.00 kg
-
+Apple 35.00 40 kg
+Banana 50.00 15 dozen
+Dragonfruit 60.00 20 piece
+Grapes 100.00 50 kg
+Jackfruit 80.00 25 kg
+Mango 220.00 25 kg
+New_Fruit 45.00 8 kg
+Orange 120.00 45 kg
+Papaya 50.00 10 kg
+Pineapple 90.00 45 kg
+Pomegranate 150.00 10 kg
+Strawberry 300.00 10 kg
+Watermelon 40.00 20 kg
+Apple 45.00 30 kg
+Apple 35.00 10 kg
